@@ -35,31 +35,39 @@ class _MyHomePageState extends State<MyHomePage> {
   Widget build(BuildContext context) {
     WidgetsBinding.instance!.addPostFrameCallback((_) {
       Navigator.push(context, MaterialPageRoute(builder: (context) {
-        return Center(
-            child: Column(
-          children: [
-            SizedBox(
-              height: 50,
-            ),
-            ElevatedButton(
-                onPressed: () {
-                  AudioPlayer player = AudioPlayer();
-                  final _playlistConcatenated =
-                      ConcatenatingAudioSource(children: createPlaylist());
-                  print('hier');
-                  player
-                      .setAudioSource(_playlistConcatenated)
-                      .then((value) => print('fertig'));
-                },
-                child: Text('load playlist')),
-            ElevatedButton(
-                onPressed: () {
-                  print('fertig');
-                  Navigator.pop(context);
-                },
-                child: Text('pop page'))
-          ],
-        ));
+        return FutureBuilder(
+          future: createPlaylist(),
+          builder: (context, AsyncSnapshot<List<AudioSource>>snapshot) {
+            if(snapshot.data != null){
+            return Center(
+                child: Column(
+              children: [
+                SizedBox(
+                  height: 50,
+                ),
+                ElevatedButton(
+                    onPressed: () {
+                      AudioPlayer player = AudioPlayer();
+                      final _playlistConcatenated =
+                          ConcatenatingAudioSource(children: snapshot.data!  );
+                      print('hier');
+                      player
+                          .setAudioSource(_playlistConcatenated)
+                          .then((value) => print('fertig'));
+                    },
+                    child: Text('load playlist')),
+                ElevatedButton(
+                    onPressed: () {
+                      print('fertig');
+                      Navigator.pop(context);
+                    },
+                    child: Text('pop page'))
+              ],
+            ));}else{
+              return Container();
+            }
+          }
+        );
       }));
     });
     return Container(
@@ -68,9 +76,11 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 }
 
-List<AudioSource> createPlaylist() {
+Future<List<AudioSource>> createPlaylist() async{
   List<AudioSource> result = [];
   for (int i = 0; i < 100000; i++) {
+    await Future.delayed(Duration.zero);
+
     result.add(AudioSource.uri(Uri.parse('asset:///assets/1.mp3')));
   }
   return result;
